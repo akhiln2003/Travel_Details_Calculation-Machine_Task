@@ -1,7 +1,7 @@
 import { IServer } from "./domain/interfaces/IServer";
 import { connectDB } from "./infrastructure/database/mongodb/connection";
 import { errorHandler } from "./presentation/middlewares/middlewares";
-import { CommonRouter } from "./presentation/routes/common.routes";
+import { CommonRouter } from "./presentation/routes/routes";
 
 export class App {
   constructor(private _server: IServer) {}
@@ -15,7 +15,7 @@ export class App {
   private _registerRoutes(): void {
     const commonRoutes = new CommonRouter().getRouter();
 
-    this._server.registerRoutes("/api/common", commonRoutes);
+    this._server.registerRoutes("/api", commonRoutes);
   }
 
   private _registerErrorHandler(): void {
