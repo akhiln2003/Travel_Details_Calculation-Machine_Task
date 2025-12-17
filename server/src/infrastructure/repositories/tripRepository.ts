@@ -1,5 +1,6 @@
 import { ITripRepository } from "../../domain/interfaces/ITripRepository";
 import { Trip, TripAttr, TripDoc } from "../database/mongodb/schemas/trip.schema";
+import { GpsPoint } from "../database/mongodb/schemas/gpsPoint.schema";
 
 export class TripRepository implements ITripRepository {
   async create(trip: TripAttr): Promise<TripDoc> {
@@ -17,6 +18,11 @@ export class TripRepository implements ITripRepository {
 
   async findByIdAndUserId(id: string, userId: string): Promise<TripDoc | null> {
     return await Trip.findOne({ _id: id, user: userId });
+  }
+
+  async delete(id: string): Promise<void> {
+    await GpsPoint.deleteMany({ trip: id });
+    await Trip.findByIdAndDelete(id);
   }
 }
 

@@ -2,13 +2,15 @@ import { NextFunction, Request, Response } from "express";
 import { IUploadTripUseCase } from "../../application/interface/IUploadTripUseCase";
 import { IGetTripsUseCase } from "../../application/interface/IGetTripsUseCase";
 import { IGetTripPointsUseCase } from "../../application/interface/IGetTripPointsUseCase";
+import { IDeleteTripUseCase } from "../../application/interface/IDeleteTripUseCase";
 import { ApiError } from "../errors/ApiError";
 
 export class TripController {
   constructor(
     private _uploadTripUseCase: IUploadTripUseCase,
     private _getTripsUseCase: IGetTripsUseCase,
-    private _getTripPointsUseCase: IGetTripPointsUseCase
+    private _getTripPointsUseCase: IGetTripPointsUseCase,
+    private _deleteTripUseCase: IDeleteTripUseCase
   ) {}
 
   uploadTrip = async (req: Request, res: Response, next: NextFunction) => {
@@ -100,5 +102,34 @@ export class TripController {
       next(error);
     }
   };
-}
 
+  deleteTrip = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ApiError({
+          message: "Authentication required",
+          statusCode: 401,
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const { tripId } = req.params;
+      if (!tripId) {
+        throw new ApiError({
+          message: "Trip ID is required",
+          statusCode: 400,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      await this._deleteTripUseCase.execute(tripId);
+
+      res.status(200).json({
+        success: true,
+        message: "Trip deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+}

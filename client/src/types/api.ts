@@ -42,6 +42,11 @@ export interface UploadTripResponse {
   trip: Trip;
 }
 
+export interface DeleteTripResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface ApiErrorResponse {
   success: false;
   error: {

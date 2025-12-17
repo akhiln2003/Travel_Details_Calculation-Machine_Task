@@ -5,6 +5,7 @@ import type {
   TripsResponse,
   TripPointsResponse,
   UploadTripResponse,
+  DeleteTripResponse,
   ApiError,
 } from "../types/api";
 
@@ -40,6 +41,11 @@ export const tripApi = {
     const response = await api.post<UploadTripResponse>("/trips/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return response.data;
+  },
+
+  deleteTrip: async (tripId: string): Promise<DeleteTripResponse> => {
+    const response = await api.delete<DeleteTripResponse>(`/trips/${tripId}`);
     return response.data;
   },
 };

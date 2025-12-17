@@ -62,9 +62,8 @@ const DashboardPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    // TODO: Implement delete API call when backend endpoint is available
-    // For now, remove from local state
     try {
+      await tripApi.deleteTrip(id);
       setTrips((prev) => prev.filter((t) => t.id !== id));
       setSelectedIds((prev) => prev.filter((x) => x !== id));
     } catch (err) {

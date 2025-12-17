@@ -4,12 +4,14 @@ import { ISignUpUseCase } from "../../application/interface/ISignUpUseCase";
 import { IUploadTripUseCase } from "../../application/interface/IUploadTripUseCase";
 import { IGetTripsUseCase } from "../../application/interface/IGetTripsUseCase";
 import { IGetTripPointsUseCase } from "../../application/interface/IGetTripPointsUseCase";
+import { IDeleteTripUseCase } from "../../application/interface/IDeleteTripUseCase";
 import { SetTokensUseCase } from "../../application/usecase/setTokens.useCase";
 import { SignInUseCase } from "../../application/usecase/signIn.useCase";
 import { SignUpUseCase } from "../../application/usecase/signUp.useCase";
 import { UploadTripUseCase } from "../../application/usecase/uploadTrip.useCase";
 import { GetTripsUseCase } from "../../application/usecase/getTrips.useCase";
 import { GetTripPointsUseCase } from "../../application/usecase/getTripPoints.useCase";
+import { DeleteTripUseCase } from "../../application/usecase/deleteTrip.useCase";
 import { JwtService } from "../external-services/JwtService";
 import { UserRepository } from "../repositories/userRepository";
 import { TripRepository } from "../repositories/tripRepository";
@@ -61,5 +63,9 @@ export class DIContainer {
 
   getTripPointsUseCase(): IGetTripPointsUseCase {
     return new GetTripPointsUseCase(this._tripRepository, this._gpsPointRepository);
+  }
+
+  deleteTripUseCase(): IDeleteTripUseCase {
+    return new DeleteTripUseCase(this._tripRepository);
   }
 }
