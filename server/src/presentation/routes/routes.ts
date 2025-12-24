@@ -48,6 +48,7 @@ export class CommonRouter {
     this._tripController = new TripController(
       this._diContainer.uploadTripUseCase(),
       this._diContainer.getTripsUseCase(),
+      this._diContainer.getTripByIdUseCase(),
       this._diContainer.getTripPointsUseCase(),
       this._diContainer.deleteTripUseCase()
     );
@@ -73,6 +74,7 @@ export class CommonRouter {
       this._tripController.uploadTrip
     );
     this._router.get("/trips", authenticate, this._tripController.getTrips);
+    this._router.get("/trips/:tripId", authenticate, this._tripController.getTripById);
     this._router.get("/trips/:tripId/points", authenticate, this._tripController.getTripPoints);
     this._router.delete("/trips/:tripId", authenticate, this._tripController.deleteTrip);
   }

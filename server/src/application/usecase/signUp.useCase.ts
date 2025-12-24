@@ -1,8 +1,9 @@
 import { ITokenService } from "../../domain/interfaces/ITokenService";
 import { IUserRepository } from "../../domain/interfaces/IUserRepository";
+import HttpStatusCode from "../../presentation/common/httpStatusCode";
 import { ApiError } from "../../presentation/errors/ApiError";
+import { UserMapper, UserResponseDto } from "../dto/userResponse.dto";
 import { ISignUpUseCase } from "../interface/ISignUpUseCase";
-import { IUserResponseDto } from "../interface/IUserResponseDto";
 import { Password } from "../services/passwordHash";
 
 export class SignUpUseCase implements ISignUpUseCase {
@@ -20,7 +21,7 @@ export class SignUpUseCase implements ISignUpUseCase {
     name: string;
     password: string;
   }): Promise<{
-    user: IUserResponseDto;
+    user: UserResponseDto;
     accessToken: string;
     refreshToken: string;
   }> {
@@ -28,7 +29,7 @@ export class SignUpUseCase implements ISignUpUseCase {
     if (existingUser) {
       throw new ApiError({
         message: "User with this email already exists",
-        statusCode: 400,
+        statusCode: HttpStatusCode.BadRequest,
         code: "USER_ALREADY_EXISTS",
       });
     } else {
@@ -42,13 +43,7 @@ export class SignUpUseCase implements ISignUpUseCase {
 
       const accessToken = this._jwtservice.generateAccessToken(newUser);
       const refreshToken = this._jwtservice.generateRefreshToken(newUser);
-      const user: IUserResponseDto = {
-        id: newUser.id as string,
-        email: newUser.email,
-        name: newUser.name,
-        createdAt: newUser.createdAt as Date,
-        updatedAt: newUser.updatedAt as Date,
-      };
+      const user: UserResponseDto = UserMapper.toDto(newUser as any);
 
       return { user, accessToken, refreshToken };
     }

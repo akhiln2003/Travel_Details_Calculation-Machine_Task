@@ -3,12 +3,15 @@ import { IUploadTripUseCase } from "../../application/interface/IUploadTripUseCa
 import { IGetTripsUseCase } from "../../application/interface/IGetTripsUseCase";
 import { IGetTripPointsUseCase } from "../../application/interface/IGetTripPointsUseCase";
 import { IDeleteTripUseCase } from "../../application/interface/IDeleteTripUseCase";
+import { IGetTripByIdUseCase } from "../../application/interface/IGetTripByIdUseCase";
 import { ApiError } from "../errors/ApiError";
+import HttpStatusCode from "../common/httpStatusCode";
 
 export class TripController {
   constructor(
     private _uploadTripUseCase: IUploadTripUseCase,
     private _getTripsUseCase: IGetTripsUseCase,
+    private _getTripByIdUseCase: IGetTripByIdUseCase,
     private _getTripPointsUseCase: IGetTripPointsUseCase,
     private _deleteTripUseCase: IDeleteTripUseCase
   ) {}
@@ -18,7 +21,7 @@ export class TripController {
       if (!req.user) {
         throw new ApiError({
           message: "Authentication required",
-          statusCode: 401,
+          statusCode: HttpStatusCode.Unauthorized,
           code: "UNAUTHORIZED",
         });
       }
@@ -27,13 +30,13 @@ export class TripController {
       if (!file) {
         throw new ApiError({
           message: "CSV file is required. Please select a valid CSV file to upload.",
-          statusCode: 400,
+          statusCode: HttpStatusCode.BadRequest,
           code: "BAD_REQUEST",
         });
       }
 
       const tripName = req.body.name as string | undefined;
-      const trip = await this._uploadTripUseCase.execute(
+      const tripDto = await this._uploadTripUseCase.execute(
         req.user.id,
         file.buffer,
         file.originalname,
@@ -42,7 +45,7 @@ export class TripController {
 
       res.status(201).json({
         success: true,
-        trip,
+        trip: tripDto,
         message: "Trip uploaded and processed successfully",
       });
     } catch (error) {
@@ -55,17 +58,50 @@ export class TripController {
       if (!req.user) {
         throw new ApiError({
           message: "Authentication required",
-          statusCode: 401,
+          statusCode: HttpStatusCode.Unauthorized,
           code: "UNAUTHORIZED",
         });
       }
 
-      const trips = await this._getTripsUseCase.execute(req.user.id);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const paginatedTrips = await this._getTripsUseCase.execute(req.user.id, page, limit);
 
       res.status(200).json({
         success: true,
-        trips,
+        ...paginatedTrips,
         message: "Trips retrieved successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getTripById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ApiError({
+          message: "Authentication required",
+          statusCode: HttpStatusCode.Unauthorized,
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const { tripId } = req.params;
+      if (!tripId) {
+        throw new ApiError({
+          message: "Trip ID is required",
+          statusCode: HttpStatusCode.BadRequest,
+          code: "BAD_REQUEST",
+        });
+      }
+
+      const tripDto = await this._getTripByIdUseCase.execute(tripId, req.user.id);
+      res.status(HttpStatusCode.OK).json({
+        success: true,
+        trip: tripDto,
+        message: "Trip retrieved successfully",
       });
     } catch (error) {
       next(error);
@@ -77,7 +113,7 @@ export class TripController {
       if (!req.user) {
         throw new ApiError({
           message: "Authentication required",
-          statusCode: 401,
+          statusCode: HttpStatusCode.Unauthorized,
           code: "UNAUTHORIZED",
         });
       }
@@ -86,16 +122,16 @@ export class TripController {
       if (!tripId) {
         throw new ApiError({
           message: "Trip ID is required",
-          statusCode: 400,
+          statusCode: HttpStatusCode.BadRequest,
           code: "BAD_REQUEST",
         });
       }
 
-      const points = await this._getTripPointsUseCase.execute(tripId, req.user.id);
+      const pointDtos = await this._getTripPointsUseCase.execute(tripId, req.user.id);
 
-      res.status(200).json({
+      res.status(HttpStatusCode.OK).json({
         success: true,
-        points,
+        points: pointDtos,
         message: "GPS points retrieved successfully",
       });
     } catch (error) {
@@ -108,7 +144,7 @@ export class TripController {
       if (!req.user) {
         throw new ApiError({
           message: "Authentication required",
-          statusCode: 401,
+          statusCode: HttpStatusCode.Unauthorized,
           code: "UNAUTHORIZED",
         });
       }
@@ -117,14 +153,14 @@ export class TripController {
       if (!tripId) {
         throw new ApiError({
           message: "Trip ID is required",
-          statusCode: 400,
+          statusCode: HttpStatusCode.BadRequest,
           code: "BAD_REQUEST",
         });
       }
 
       await this._deleteTripUseCase.execute(tripId);
 
-      res.status(200).json({
+      res.status(HttpStatusCode.OK).json({
         success: true,
         message: "Trip deleted successfully",
       });

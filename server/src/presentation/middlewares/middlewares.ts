@@ -2,6 +2,7 @@ import { ErrorRequestHandler, RequestHandler } from "express";
 import { ApiError } from "../errors/ApiError";
 import { ZodError } from "zod";
 import { JwtService } from "../../infrastructure/external-services/JwtService";
+import HttpStatusCode from "../common/httpStatusCode";
 
 export const authenticate: RequestHandler = async (req, res, next) => {
   try {
@@ -9,7 +10,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new ApiError({
         message: "Authentication required. Please provide a valid token.",
-        statusCode: 401,
+        statusCode: HttpStatusCode.Unauthorized,
         code: "UNAUTHORIZED",
       });
     }
@@ -21,7 +22,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
     if (!secret) {
       throw new ApiError({
         message: "Server configuration error",
-        statusCode: 500,
+        statusCode: HttpStatusCode.InternalServerError,
         code: "INTERNAL_ERROR",
       });
     }
@@ -36,7 +37,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
       next(
         new ApiError({
           message: "Invalid or expired token",
-          statusCode: 401,
+          statusCode: HttpStatusCode.Unauthorized,
           code: "UNAUTHORIZED",
         })
       );

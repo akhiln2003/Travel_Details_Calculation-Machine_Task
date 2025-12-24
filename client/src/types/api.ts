@@ -1,5 +1,5 @@
 import type { AxiosError } from "axios";
-import type { Trip, GpsPoint } from "./index";
+import type { Trip, TripListItem, GpsPoint } from "./index";
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -31,7 +31,14 @@ export interface SignUpResponse {
 }
 
 export interface TripsResponse {
-  trips: Trip[];
+  trips: TripListItem[];
+  totalPages: number;
+  currentPage: number;
+  totalTrips: number;
+}
+
+export interface TripByIdResponse {
+  trip: Trip;
 }
 
 export interface TripPointsResponse {

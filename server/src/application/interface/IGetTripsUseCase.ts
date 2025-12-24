@@ -1,6 +1,13 @@
-import { TripDoc } from "../../infrastructure/database/mongodb/schemas/trip.schema";
+import { TripListItemDto } from "../dto/trip.dto";
+
+export interface PaginatedTrips {
+    trips: TripListItemDto[];
+    totalPages: number;
+    currentPage: number;
+    totalTrips: number;
+}
 
 export interface IGetTripsUseCase {
-  execute(userId: string): Promise<TripDoc[]>;
+  execute(userId: string, page: number, limit: number): Promise<PaginatedTrips>;
 }
 

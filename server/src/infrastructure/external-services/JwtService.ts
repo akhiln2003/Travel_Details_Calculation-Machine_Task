@@ -6,6 +6,7 @@ import {
   ITokenService,
 } from "../../domain/interfaces/ITokenService";
 import { ApiError } from "../../presentation/errors/ApiError";
+import HttpStatusCode from "../../presentation/common/httpStatusCode";
 
 export class JwtService implements ITokenService {
   private readonly _accessTokenSecret: string;
@@ -42,7 +43,7 @@ export class JwtService implements ITokenService {
     if (typeof decoded === "string") {
       throw new ApiError({
         message: "Invalid token payload: expected object but got string",
-        statusCode: 400,
+        statusCode: HttpStatusCode.BadRequest,
         code: "NOT_FOUND",
       });
     }

@@ -1,15 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
-import type { Trip } from "../types";
+import type { TripListItem } from "../types";
 import ConfirmationModal from "./ConfirmationModal";
 
 interface Props {
-  trips: Trip[];
+  trips: TripListItem[];
   selectedIds: string[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  itemsPerPage?: number;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  loading: boolean;
 }
 
 const TripListWithPagination = ({
@@ -17,31 +20,20 @@ const TripListWithPagination = ({
   selectedIds,
   onToggle,
   onDelete,
-  itemsPerPage = 10,
+  currentPage,
+  totalPages,
+  onPageChange,
+  loading,
 }: Props) => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
-
-  const totalPages = Math.ceil(trips.length / itemsPerPage);
-  const paginatedTrips = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return trips.slice(start, end);
-  }, [trips, currentPage, itemsPerPage]);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  const [tripToDelete, setTripToDelete] = useState<TripListItem | null>(null);
 
   const handleTripClick = (tripId: string) => {
     navigate(`/trip/${tripId}`);
   };
 
-  const openConfirmationModal = (trip: Trip) => {
+  const openConfirmationModal = (trip: TripListItem) => {
     setTripToDelete(trip);
     setIsModalOpen(true);
   };
@@ -58,7 +50,7 @@ const TripListWithPagination = ({
     }
   };
 
-  if (trips.length === 0) {
+  if (trips.length === 0 && !loading) {
     return (
       <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
         No trips yet. Upload a CSV to get started.
@@ -73,7 +65,12 @@ const TripListWithPagination = ({
           <h2 className="text-2xl font-bold text-gray-900">Your Trips</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          )}
           <div className="px-6 py-3 bg-gray-50 font-semibold text-gray-700">
             <div className="flex items-center">
               <div className="w-12"></div>
@@ -81,7 +78,7 @@ const TripListWithPagination = ({
               <div className="w-20"></div>
             </div>
           </div>
-          {paginatedTrips.map((trip) => {
+          {trips.map((trip) => {
             const isSelected = selectedIds.includes(trip.id);
             return (
               <div
@@ -159,8 +156,8 @@ const TripListWithPagination = ({
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
             <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1 || loading}
               className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +167,8 @@ const TripListWithPagination = ({
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
-                onClick={() => handlePageChange(page)}
+                onClick={() => onPageChange(page)}
+                disabled={loading}
                 className={`w-8 h-8 rounded ${
                   currentPage === page
                     ? "bg-blue-600 text-white"
@@ -181,8 +179,8 @@ const TripListWithPagination = ({
               </button>
             ))}
             <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || loading}
               className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,11 +1,11 @@
-import { TripDoc } from "../../infrastructure/database/mongodb/schemas/trip.schema";
+import { TripResponseDto } from "../dto/trip.dto";
 
 export interface IUploadTripUseCase {
   execute(
     userId: string,
     fileBuffer: Buffer,
-    fileName: string,
+    fileName:string,
     tripName?: string
-  ): Promise<TripDoc>;
+  ): Promise<TripResponseDto>;
 }
 

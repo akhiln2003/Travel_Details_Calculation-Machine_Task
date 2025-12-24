@@ -1,10 +1,10 @@
-import { Trip, TripAttr, TripDoc } from "../../infrastructure/database/mongodb/schemas/trip.schema";
+import { TripEntity } from '../entities/Trip.entity';
+import { IBaseRepository } from './IBaseRepository';
 
-export interface ITripRepository {
-  create(trip: TripAttr): Promise<TripDoc>;
-  findById(id: string): Promise<TripDoc | null>;
-  findByUserId(userId: string): Promise<TripDoc[]>;
-  findByIdAndUserId(id: string, userId: string): Promise<TripDoc | null>;
-  delete(id: string): Promise<void>;
+export type TripCreationAttributes = Omit<TripEntity, "id" | "createdAt" | "updatedAt">;
+
+export interface ITripRepository extends IBaseRepository<TripEntity, TripCreationAttributes> {
+  findByUserId(userId: string, page: number, limit: number): Promise<{ trips: TripEntity[], total: number }>;
+  findByIdAndUserId(id: string, userId: string): Promise<TripEntity | null>;
 }
 

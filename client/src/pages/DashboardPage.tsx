@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { setAuthToken } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { tripApi } from "../lib/api-client";
-import type { Trip } from "../types";
+import type { TripListItem } from "../types";
 import type { ApiError } from "../types/api";
 import DashboardHeader from "../components/DashboardHeader";
 import UploadTripCard from "../components/UploadTripCard";
@@ -13,31 +13,34 @@ import TripListWithPagination from "../components/TripListWithPagination";
 const DashboardPage = () => {
   const { token, logout, user } = useAuth();
   const navigate = useNavigate();
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripListItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalTrips, setTotalTrips] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (token) {
       setAuthToken(token);
-      fetchTrips();
+      fetchTrips(currentPage);
     } else {
       navigate("/login");
     }
-  }, [token, navigate]);
+  }, [token, navigate, currentPage]);
 
-  const fetchTrips = async () => {
+  const fetchTrips = async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await tripApi.getTrips();
-      const formattedTrips: Trip[] = response.trips.map((trip) => ({
-        ...trip,
-        id: trip.id || (trip as unknown as { _id: string })._id,
-      }));
-      setTrips(formattedTrips);
+      const response = await tripApi.getTrips(page, itemsPerPage);
+      setTrips(response.trips);
+      setTotalPages(response.totalPages);
+      setCurrentPage(response.currentPage);
+      setTotalTrips(response.totalTrips);
     } catch (err) {
       const apiError = err as ApiError;
       if (apiError.response?.status === 401) {
@@ -64,7 +67,13 @@ const DashboardPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await tripApi.deleteTrip(id);
-      setTrips((prev) => prev.filter((t) => t.id !== id));
+      // Refetch current page
+      // A bit tricky if it was the last item on a page
+      if (trips.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        fetchTrips(currentPage);
+      }
       setSelectedIds((prev) => prev.filter((x) => x !== id));
     } catch (err) {
       const apiError = err as ApiError;
@@ -75,12 +84,21 @@ const DashboardPage = () => {
       );
     }
   };
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  }
 
   const handleUploaded = () => {
-    fetchTrips();
+    // Go to first page to see the new upload if it's not already there
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchTrips(1);
+    }
   };
 
-  if (loading) {
+  if (loading && trips.length === 0) { // Show full page loader only on initial load
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -103,6 +121,10 @@ const DashboardPage = () => {
             selectedIds={selectedIds}
             onToggle={handleToggle}
             onDelete={handleDelete}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            loading={loading}
           />
         </div>
 

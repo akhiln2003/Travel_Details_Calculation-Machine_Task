@@ -76,30 +76,14 @@ const TripDetailPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [tripsResponse, pointsResponse] = await Promise.all([
-        tripApi.getTrips(),
+      const [tripResponse, pointsResponse] = await Promise.all([
+        tripApi.getTripById(tripId),
         tripApi.getTripPoints(tripId),
       ]);
 
-      const foundTrip = tripsResponse.trips.find(
-        (t) => (t.id || (t as unknown as { _id: string })._id) === tripId
-      );
+      setTrip(tripResponse.trip);
+      setPoints(pointsResponse.points);
 
-      if (!foundTrip) {
-        setError("Trip not found");
-        return;
-      }
-
-      setTrip({
-        ...foundTrip,
-        id: foundTrip.id || (foundTrip as unknown as { _id: string })._id,
-      });
-
-      const formattedPoints: GpsPoint[] = pointsResponse.points.map((p) => ({
-        ...p,
-        id: p.id || (p as unknown as { _id: string })._id,
-      }));
-      setPoints(formattedPoints);
     } catch (err) {
       const apiError = err as ApiError;
       setError(

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { ISetTokensUseCase } from "../../application/interface/ISetTokensUseCase";
 import { ApiError } from "../errors/ApiError";
 import { ISignInUseCase } from "../../application/interface/ISignInUseCase";
+import HttpStatusCode from "../common/httpStatusCode";
 
 export class SignInController {
   constructor(
@@ -16,7 +17,7 @@ export class SignInController {
       if (!email || !password) {
         throw new ApiError({
           message: "Email and Password are required",
-          statusCode: 400,
+          statusCode: HttpStatusCode.BadRequest,
           code: "BAD_REQUEST",
         });
       }
@@ -24,7 +25,7 @@ export class SignInController {
 
       this._setTokensUseCase.execute(res, result.accessToken, result.refreshToken);
 
-      res.status(200).json({
+      res.status(HttpStatusCode.OK).json({
         token: result.accessToken,
         user: result.user,
       });

@@ -3,9 +3,9 @@ import { ITripRepository } from "../../domain/interfaces/ITripRepository";
 import { IGpsPointRepository } from "../../domain/interfaces/IGpsPointRepository";
 import { CsvParserService } from "../services/csvParser.service";
 import { TripCalculationService } from "../services/tripCalculation.service";
-import { TripDoc } from "../../infrastructure/database/mongodb/schemas/trip.schema";
 import { ApiError } from "../../presentation/errors/ApiError";
-import mongoose from "mongoose";
+import HttpStatusCode from "../../presentation/common/httpStatusCode";
+import { TripMapper, TripResponseDto } from "../dto/trip.dto";
 
 export class UploadTripUseCase implements IUploadTripUseCase {
   constructor(
@@ -20,7 +20,7 @@ export class UploadTripUseCase implements IUploadTripUseCase {
     fileBuffer: Buffer,
     fileName: string,
     tripName?: string
-  ): Promise<TripDoc> {
+  ): Promise<TripResponseDto> {
     try {
       // Parse CSV
       const rawGpsData = await this._csvParser.parseGpsCsv(fileBuffer);
@@ -32,7 +32,7 @@ export class UploadTripUseCase implements IUploadTripUseCase {
       // Create trip
       const tripNameToUse = tripName || `Trip ${new Date().toLocaleDateString()}`;
       const trip = await this._tripRepository.create({
-        user: new mongoose.Types.ObjectId(userId),
+        user: userId,
         name: tripNameToUse,
         sourceFileName: fileName,
         startedAt,
@@ -51,7 +51,7 @@ export class UploadTripUseCase implements IUploadTripUseCase {
 
       // Create GPS points
       const gpsPointsToSave = points.map((point) => ({
-        trip: trip._id,
+        trip: trip.id,
         idx: point.idx,
         latitude: point.latitude,
         longitude: point.longitude,
@@ -70,14 +70,14 @@ export class UploadTripUseCase implements IUploadTripUseCase {
         await this._gpsPointRepository.createMany(batch);
       }
 
-      return trip;
+      return TripMapper.toDto(trip);
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
       }
       throw new ApiError({
         message: error instanceof Error ? error.message : "Failed to process trip",
-        statusCode: 500,
+        statusCode: HttpStatusCode.InternalServerError,
         code: "INTERNAL_ERROR",
       });
     }

@@ -1,6 +1,6 @@
-import { GpsPointDoc } from "../../infrastructure/database/mongodb/schemas/gpsPoint.schema";
+import { GpsPointResponseDto } from "../dto/gpsPoint.dto";
 
 export interface IGetTripPointsUseCase {
-  execute(tripId: string, userId: string): Promise<GpsPointDoc[]>;
+  execute(tripId: string, userId: string): Promise<GpsPointResponseDto[]>;
 }
 

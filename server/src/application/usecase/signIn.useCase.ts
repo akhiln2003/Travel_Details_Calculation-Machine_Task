@@ -1,8 +1,9 @@
 import { ITokenService } from "../../domain/interfaces/ITokenService";
 import { IUserRepository } from "../../domain/interfaces/IUserRepository";
+import HttpStatusCode from "../../presentation/common/httpStatusCode";
 import { ApiError } from "../../presentation/errors/ApiError";
+import { UserMapper, UserResponseDto } from "../dto/userResponse.dto";
 import { ISignInUseCase } from "../interface/ISignInUseCase";
-import { IUserResponseDto } from "../interface/IUserResponseDto";
 import { Password } from "../services/passwordHash";
 
 export class SignInUseCase implements ISignInUseCase {
@@ -14,7 +15,7 @@ export class SignInUseCase implements ISignInUseCase {
     email: string,
     password: string,
   ): Promise<{
-    user: IUserResponseDto;
+    user: UserResponseDto;
     accessToken: string;
     refreshToken: string;
   }> {
@@ -24,7 +25,7 @@ export class SignInUseCase implements ISignInUseCase {
       // throw new NotFountError("This email is invalid");
       throw new ApiError({
         message: "Invalid credentials. Please check your email and try again.",
-        statusCode: 401,
+        statusCode: HttpStatusCode.Unauthorized,
         code: "NOT_AUTHORIZED",
       });
     }
@@ -33,13 +34,7 @@ export class SignInUseCase implements ISignInUseCase {
       const accessToken = this._jwtService.generateAccessToken(user);
       const refreshToken = this._jwtService.generateRefreshToken(user);
 
-      const userData: IUserResponseDto = {
-        id: user.id as string,
-        email: user.email,
-        name: user.name,
-        createdAt: user.createdAt as Date,
-        updatedAt: user.updatedAt as Date,
-      };
+      const userData: UserResponseDto = UserMapper.toDto(user as any)
       return {
         user: userData,
         accessToken,
@@ -49,7 +44,7 @@ export class SignInUseCase implements ISignInUseCase {
 
     throw new ApiError({
       message: "Invalid credentials. Please check your password and try again.",
-      statusCode: 401,
+      statusCode: HttpStatusCode.Unauthorized,
       code: "NOT_AUTHORIZED",
     });
   }

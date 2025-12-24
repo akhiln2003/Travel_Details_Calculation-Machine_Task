@@ -9,6 +9,15 @@ export interface TripStats {
   maxSpeedKmph: number;
 }
 
+export interface TripListItem {
+  id: string;
+  name: string;
+  startedAt: string;
+  endedAt: string;
+  totalDistanceMeters: number;
+  averageSpeedKmph: number;
+}
+
 export interface Trip {
   id: string;
   name: string;

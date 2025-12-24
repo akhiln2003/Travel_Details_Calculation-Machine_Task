@@ -1,4 +1,4 @@
-import { IUserResponseDto } from "./IUserResponseDto";
+import { UserResponseDto } from "../dto/userResponse.dto";
 
 export interface ISignUpUseCase {
   execute({
@@ -9,5 +9,5 @@ export interface ISignUpUseCase {
     email: string;
     name: string;
     password: string;
-  }): Promise<{ user: IUserResponseDto; accessToken: string; refreshToken: string }>;
+  }): Promise<{ user: UserResponseDto; accessToken: string; refreshToken: string }>;
 }
