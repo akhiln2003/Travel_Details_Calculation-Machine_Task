@@ -16,7 +16,6 @@ const DashboardPage = () => {
   const [trips, setTrips] = useState<TripListItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalTrips, setTotalTrips] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -40,7 +39,6 @@ const DashboardPage = () => {
       setTrips(response.trips);
       setTotalPages(response.totalPages);
       setCurrentPage(response.currentPage);
-      setTotalTrips(response.totalTrips);
     } catch (err) {
       const apiError = err as ApiError;
       if (apiError.response?.status === 401) {
